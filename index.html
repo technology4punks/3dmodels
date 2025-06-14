@@ -1,61 +1,141 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <title>AR A-Frame con Due Modelli</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- A-Frame e WebXR AR support -->
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.1/dist/aframe-environment-component.min.js"></script>
-  <!-- GLTF Model support -->
-  <script src="https://unpkg.com/aframe-gltf-part-component@2.0.0/dist/aframe-gltf-part-component.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizzatore AR USDZ</title>
+    <!-- Carica Tailwind CSS per uno styling rapido e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Stili personalizzati per il font Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f0f2f5; /* Sfondo leggero */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem; /* Padding generale per i dispositivi mobili */
+            box-sizing: border-box; /* Include padding nel calcolo della larghezza */
+        }
+    </style>
 </head>
-<body style="margin:0;">
-  <!-- A-Frame scene con WebXR AR abilitato -->
-  <a-scene
-    embedded
-    vr-mode-ui="enabled: false"
-    renderer="colorManagement: true; physicallyCorrectLights: true"
-    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
-    webxr="optionalFeatures: hit-test;">
+<body class="bg-gray-100 text-gray-800">
+    <div class="container bg-white p-8 rounded-lg shadow-xl max-w-lg w-full text-center border border-gray-200">
+        <h1 class="text-3xl md:text-4xl font-extrabold mb-6 text-gray-900 leading-tight">
+            Visualizzatore AR <span class="text-indigo-600">USDZ</span>
+        </h1>
+        <p class="text-base md:text-lg text-gray-600 mb-8">
+            Tocca il pulsante qui sotto per visualizzare il modello 3D in realtà aumentata sul tuo iPhone.
+            Questa funzionalità richiede Safari su iOS.
+        </p>
 
-    <!-- Environment opzionale -->
-    <a-entity environment="preset: forest; shadow: true;"></a-entity>
+        <!-- Il link principale per la visualizzazione AR -->
+        <!-- Il suo href punta direttamente al modello specificato -->
+        <a id="arLink"
+           href="https://cdn.glitch.me/b8fbcc81-d8c0-46a9-b677-2a4777b28897/mesh2.usdz"
+           rel="ar"
+           class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out transform hover:scale-105">
+            <svg class="w-5 h-5 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM6.75 9.25a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z" clip-rule="evenodd"></path>
+            </svg>
+            Visualizza in AR
+        </a>
 
-    <!-- Modello 1 -->
-    <a-entity
-      gltf-model="url(https://raw.githubusercontent.com/technology4punks/3dmodels/main/tungsauron.glb)"
-      position="0 0 -1"
-      scale="0.5 0.5 0.5"
-      animation__enter="property: position; to: 0 0 -0.5; dur: 1000; startEvents: model-loaded"
-      ></a-entity>
+        <!-- Messaggio di avviso per dispositivi non supportati -->
+        <div id="deviceWarning" class="mt-8 p-4 bg-yellow-100 border border-yellow-200 text-yellow-800 rounded-lg hidden">
+            <p class="font-medium">Attenzione:</p>
+            <p>Per una piena esperienza di realtà aumentata, apri questa pagina su un **iPhone** utilizzando il browser **Safari**.</p>
+            <p class="mt-2 text-sm">
+                La funzionalità AR nativa richiede un dispositivo iOS e il browser Safari.
+            </p>
+        </div>
 
-    <!-- Modello 2 -->
-    <a-entity
-      gltf-model="url(https://raw.githubusercontent.com/technology4punks/3dmodels/main/tungsauron.glb)"
-      position="0 0.2 -1.5"
-      scale="0.4 0.4 0.4"
-      animation__enter="property: position; to: 0 0.2 -1; dur: 1200; startEvents: model-loaded"
-      ></a-entity>
+        <p class="mt-8 text-sm text-gray-500">
+            Modello: mesh2.usdz
+        </p>
+    </div>
 
-    <!-- Camera AR -->
-    <a-entity camera look-controls gesture-detector></a-entity>
-  </a-scene>
+    <script>
+        // Ottieni riferimenti agli elementi DOM
+        const arLink = document.getElementById('arLink');
+        const deviceWarning = document.getElementById('deviceWarning');
 
-  <script>
-    // Controllo tap sui modelli
-    AFRAME.registerComponent('gesture-detector', {
-      init: function () {
-        const el = this.el;
-        el.addEventListener('click', evt => {
-          const clicked = evt.target;
-          if (clicked.getAttribute('gltf-model')) {
-            console.log('Hai toccato:', clicked);
-            // Puoi aggiungere suoni qui tramite Tone.js
-          }
+        // URL del modello USDZ da utilizzare
+        const usdzModelUrl = "https://cdn.glitch.me/b8fbcc81-d8c0-46a9-b677-2a4777b28897/mesh2.usdz";
+
+        // Imposta l'href del link AR al modello specificato
+        arLink.href = usdzModelUrl;
+
+        /**
+         * Funzione per rilevare se il dispositivo è iOS.
+         * Utilizza il user agent per controllare la presenza di 'iPhone', 'iPad', 'iPod'.
+         * @returns {boolean} True se il dispositivo è iOS, altrimenti False.
+         */
+        function isIOS() {
+            // Controlla la piattaforma per i dispositivi Apple
+            return [
+                'iPad Simulator',
+                'iPhone Simulator',
+                'iPod Simulator',
+                'iPad',
+                'iPhone',
+                'iPod'
+            ].includes(navigator.platform)
+            // Per iPad su iOS 13+ che può avere un user agent desktop, controlla anche 'MacIntel' combinato con 'ontouchend' (rilevamento del touch)
+            || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+        }
+
+        /**
+         * Funzione per rilevare se il browser è Safari.
+         * @returns {boolean} True se il browser è Safari, altrimenti False.
+         */
+        function isSafari() {
+            // Controlla il user agent per la stringa "Safari" e si assicura che non sia Chrome o Android (che a volte spoofano Safari)
+            return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        }
+
+        /**
+         * Funzione per aggiornare lo stato dell'interfaccia utente
+         * in base al dispositivo e al browser dell'utente.
+         */
+        function updateUIState() {
+            if (!isIOS() || !isSafari()) {
+                // Se non è iOS o non è Safari, mostra l'avviso e disabilita il link AR
+                deviceWarning.classList.remove('hidden');
+                arLink.style.pointerEvents = 'none'; // Disabilita i clic sul link
+                arLink.classList.add('opacity-50', 'cursor-not-allowed'); // Rendi il link meno visibile
+                // Aggiorna il testo dell'avviso per i dispositivi non supportati
+                deviceWarning.innerHTML = `
+                    <p class="font-medium">Attenzione:</p>
+                    <p>Per una piena esperienza di realtà aumentata, apri questa pagina su un **iPhone** utilizzando il browser **Safari**.</p>
+                    <p class="mt-2 text-sm">
+                        La funzionalità AR nativa richiede un dispositivo iOS e il browser Safari.
+                    </p>
+                `;
+            } else {
+                // Se è iOS e Safari, nascondi l'avviso generale e abilita il link AR
+                deviceWarning.classList.add('hidden');
+                arLink.style.pointerEvents = 'auto';
+                arLink.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Al caricamento della finestra, controlla il dispositivo e il browser per impostare lo stato iniziale dell'UI
+        window.onload = function() {
+            updateUIState();
+        };
+
+        // Aggiungi un listener per il caso in cui l'utente clicca ma la funzionalità non è disponibile
+        arLink.addEventListener('click', function(event) {
+            // Se non è iOS o Safari, impedisci l'azione predefinita
+            if (!isIOS() || !isSafari()) {
+                event.preventDefault(); // Impedisce la navigazione del link
+                console.warn("Il link AR è stato cliccato ma la funzionalità non è supportata (non iOS/Safari).");
+            }
         });
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
